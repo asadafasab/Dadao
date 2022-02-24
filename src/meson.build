@@ -3,8 +3,9 @@ deps = [dependency('gtk+-3.0'), dependency('gtk-layer-shell-0'),dependency('glib
 executable(
     meson.project_name(),
     'Main.vala',
-    'Panel.vala',
-    'Window.vala',
+    'Panels.vala',
+    'widgets/Panel.vala',
+    'widgets/Settings.vala',
     dependencies: deps,
     install:true,
     link_args: '-O3')

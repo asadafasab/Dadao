@@ -1,5 +1,6 @@
 # Dadao
 Sway panel written in Vala.
+
 Version 0.0.1 (pre alpha quality).
 
 ## Build
