@@ -51,6 +51,11 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# direcories
+# Direcories
 build/
 builddir/
+
+# Tools
+*.uncrustify
+*.unc-backup.md5~
+*.unc-backup~

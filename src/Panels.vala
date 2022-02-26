@@ -3,61 +3,72 @@ using i3ipc;
 using GtkLayerShell;
 using Gdk;
 
-public class Panels:Gtk.Application{
-    private i3ipc.Connection connection;
-    private Dadao.Panel[] panels;
-    private Gdk.Monitor[] displays;
+public class Panels : Gtk.Application {
+   private i3ipc.Connection connection;
+   private Dadao.Panel[] panels;
 
-    public Panels(){
-        Object(
-            application_id:"com.github.asadafasab.dadao",
-            flags:ApplicationFlags.FLAGS_NONE
-        );
-    }
-    protected override void activate(){
-        //ipc
-        connection = new Connection(null);
-        var ws_event = connection.subscribe(i3ipc.Event.WORKSPACE);
-        connection.workspace.connect(update_workspaces);
-        var out_event = connection.subscribe(i3ipc.Event.OUTPUT);
-        connection.output.connect(update_panels);
+   public Panels() {
+      Object(
+         application_id: "com.github.asadafasab.dadao",
+         flags : ApplicationFlags.FLAGS_NONE
+         );
+   }
 
-        // output(s)
-        update_panels();
-        //  var window = new Dadao.Panel(this,true);
-        //  add_window(window);
-        //  window.update_workspace_buttons(connection);
+   protected override void activate() {
+      //ipc
+      try{
+         connection = new Connection(null);
+         connection.subscribe(i3ipc.Event.WORKSPACE);
+         connection.subscribe(i3ipc.Event.OUTPUT);
+      }catch (Error e) {
+         GLib.error(e.message);
+      }
+      connection.output.connect(update_panels);
+      connection.workspace.connect(update_panels);
 
-    }
-    private void update_workspaces(){
-        foreach(var panel in panels){
-            panel.update_workspace_buttons(connection);
-        }
-    }
-    private void update_panels(){
-        if (panels.length>0){
-            //TODO iterate over panels...
-            
-        }else{
-            var default_out = Gdk.Display.get_default();
-            string[] outputs ={};
-            connection.get_outputs().foreach((el)=>{
-                outputs+=el.name;
-            });
-            
-            for(var i=0;i<default_out.get_n_monitors();i++){
-                var monitor=default_out.get_monitor(i);
-                // monitor.is_primary();
-                var panel = new Dadao.Panel(this,false);
+      // output(s)
+      update_panels();
+   }
 
-                panel.output_monitor=outputs[i];
-                GtkLayerShell.set_monitor(panel, monitor);
-                panels+=panel;
-                var last = panels.length-1;
-                add_window(panels[last]);
-                panels[last].update_workspace_buttons(connection);
-            }
-           
-        }
-    }
+   private void update_workspaces() {
+      foreach (var panel in panels) {
+         panel.update_workspace_buttons(connection);
+      }
+   }
+
+   private void update_panels() {
+      string[] outputs = {};
+      try{
+         connection.get_outputs().foreach ((el) => {
+            outputs += el.name;
+         }) {
+            ;
+         }
+      }catch (Error e) {
+         stderr.printf(e.message);
+      }
+
+      if (outputs.length == panels.length) {
+         update_workspaces();
+      }
+      else{
+         for (var i = 0; i < panels.length; ++i) {
+            panels[i].destroy();
+         }
+         var default_out = Gdk.Display.get_default();
+
+         for (var i = 0; i < default_out.get_n_monitors(); i++) {
+            var monitor = default_out.get_monitor(i);
+            // monitor.is_primary();
+            var panel = new Dadao.Panel(this, false);
+
+            panel.output_monitor = outputs[i];
+            GtkLayerShell.set_monitor(panel, monitor);
+            panels += panel;
+            var last = panels.length - 1;
+            add_window(panels[last]);
+            panels[last].update_workspace_buttons(connection);
+         }
+      }
+   }
 }
